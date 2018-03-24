@@ -1,5 +1,8 @@
 import React,{Component} from 'react';
 import RaisedButton from 'material-ui/RaisedButton';
+//import {LineChart} from 'react-d3-basic';
+
+let printCharacteristic;
 
 
 export default class App extends Component {
@@ -20,6 +23,7 @@ export default class App extends Component {
     }
 
     BLEConnect(){
+      /*
         return navigator.bluetooth.requestDevice({filters: [{services: ['heart_rate']}]})
             .then(device => {
                 return device.gatt.connect();
@@ -38,6 +42,39 @@ export default class App extends Component {
                 });
             })
             .catch(e => console.error(e));
+            */
+
+    navigator.bluetooth.requestDevice({
+        filters: [{
+            services: ['000018f0-0000-1000-8000-00805f9b34fb']
+        }]
+    })
+        .then(device => {
+            console.log('> Found ' + device.name);
+            console.log('Connecting to GATT Server...');
+            return device.gatt.connect();
+        })
+        .then(server => server.getPrimaryService("000018f0-0000-1000-8000-00805f9b34fb"))
+        .then(service => service.getCharacteristic("00002af1-0000-1000-8000-00805f9b34fb"))
+        .then(characteristic => {
+            printCharacteristic = characteristic;
+            console.log(printCharacteristic); // printCharacteristic.writeValueで書き込めるっぽい
+            //let text1 = new Uint8Array([1]);
+            //printCharacteristic.writeValue(text);
+
+
+            let encoder = new TextEncoder("utf-8");
+          // Add line feed + carriage return chars to text
+          let text = encoder.encode('THIS IS TEST PRINTING BY MUHAMMAD MANNIR AHMAD' + '\u000A\u000D');
+          return printCharacteristic.writeValue(text).then(() => {
+            console.log('Print Sent!');
+          });
+
+        })
+        .catch(error => console.log(error));
+
+
+            console.log('BLEConnect')
     }
 
 
@@ -53,9 +90,11 @@ export default class App extends Component {
 
         return(
             <div id="app">
-                <RaisedButton onClick={this.BLEConnect} label="Start Monitoring!" primary={true} />
+                <RaisedButton onClick={this.BLEConnect} label="Start Printing!" primary={true} />
                 {currentHearRate && <p>Current Heart Rate: <span style={{color:'#C20000'}}>{currentHearRate.heartRate}</span></p>}
 
+
+                <br />  Mannir React Material-UI Bluetooth Web Demo
             </div>
         );
     }
